@@ -17,6 +17,7 @@ import AdminCourses from "@/pages/admin/Courses";
 import AdminStaff from "@/pages/admin/Staff";
 import AdminManagers from "@/pages/admin/Managers";
 import AdminStores from "@/pages/admin/Stores";
+import AdminPeople from "@/pages/admin/People";
 import StoreDetail from "@/pages/admin/StoreDetail";
 import StaffDetail from "@/pages/admin/StaffDetail";
 import Register from "@/pages/admin/Register";
@@ -94,22 +95,32 @@ function RoleGuard({
   return <>{children}</>;
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Reads session fresh on every render — prevents stale closure on root redirect. */
+function RootRedirect() {
+  const session = getSession();
+  return <Navigate to={session ? "/dashboard" : "/login"} replace />;
+}
+
 // ── App ───────────────────────────────────────────────────────────────────────
 
 function App() {
-  const session = getSession();
-
   return (
     <BrowserRouter>
       <Routes>
         {/* Root redirect */}
-        <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
+        <Route path="/" element={<RootRedirect />} />
 
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected — all authenticated roles */}
         <Route element={<AuthLayout />}>
+
+          {/* Legacy role-prefixed dashboard URLs → canonical /dashboard */}
+          <Route path="/manager/dashboard" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/staff/dashboard"   element={<Navigate to="/dashboard" replace />} />
 
           {/* Role-aware pages */}
           <Route
@@ -231,6 +242,16 @@ function App() {
             element={
               <RoleGuard allow={["admin"]}>
                 <AdminManagers />
+              </RoleGuard>
+            }
+          />
+
+          {/* People — combined Stores + Managers + Staff — admin only */}
+          <Route
+            path="/people"
+            element={
+              <RoleGuard allow={["admin"]}>
+                <AdminPeople />
               </RoleGuard>
             }
           />

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Store, Users, UserCog, GraduationCap,
-  Target, CalendarCheck, Megaphone, Award, LogOut, UserPlus, User,
+  LayoutDashboard, Users, Users2, GraduationCap,
+  Target, CalendarCheck, Megaphone, Award, LogOut, User,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -14,15 +14,13 @@ type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; roles
 
 const nav: NavItem[] = [
   { title: "Dashboard",  url: "/dashboard",  icon: LayoutDashboard, roles: ["admin", "manager", "staff"] },
-  { title: "Stores",     url: "/stores",     icon: Store,           roles: ["admin"] },
-  { title: "Managers",   url: "/managers",   icon: UserCog,         roles: ["admin"] },
-  { title: "Staff",      url: "/staff",      icon: Users,           roles: ["admin", "manager"] },
+  { title: "People",     url: "/people",     icon: Users2,          roles: ["admin"] },
+  { title: "Staff",      url: "/staff",      icon: Users,           roles: ["manager"] },
   { title: "Courses",    url: "/courses",    icon: GraduationCap,   roles: ["admin", "manager", "staff"] },
   { title: "Targets",    url: "/targets",    icon: Target,          roles: ["admin", "manager", "staff"] },
   { title: "Attendance", url: "/attendance", icon: CalendarCheck,   roles: ["admin", "manager", "staff"] },
   { title: "Notices",    url: "/notices",    icon: Megaphone,       roles: ["admin", "manager", "staff"] },
   { title: "Incentives", url: "/incentives", icon: Award,           roles: ["admin", "manager", "staff"] },
-  { title: "Register",   url: "/register",   icon: UserPlus,        roles: ["admin"] },
   { title: "Profile",    url: "/profile",    icon: User,            roles: ["staff"] },
 ];
 
@@ -76,6 +74,12 @@ export function AppSidebar({ session }: { session: Session }) {
             <div className="text-xs text-sidebar-foreground/70">Signed in as</div>
             <div className="text-sm font-medium text-sidebar-foreground">{session.name}</div>
             <div className="text-[11px] uppercase tracking-wider text-brand">{session.role}</div>
+            {session.role === "manager" && session.storeName && (
+              <div className="mt-2 rounded-md bg-sidebar-accent px-2 py-1.5 text-xs">
+                <div className="font-semibold truncate">{session.storeName}</div>
+                <div className="text-sidebar-foreground/60">Store #{session.storeCode}</div>
+              </div>
+            )}
           </div>
         )}
         <SidebarMenu>

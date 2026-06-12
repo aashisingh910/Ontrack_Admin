@@ -1,21 +1,39 @@
-import type { Role } from "./mock-data";
+export type Role = "admin" | "manager" | "staff";
 
-const KEY = "ontrack.session.v1";
+export type Session = {
+  role: Role;
+  email: string;
+  name: string;
+  token?: string;
+  employeeCode?: string;
+  contactNumber?: string;
+  storeCode?: string;
+  storeName?: string;
+  city?: string;
+  region?: string;
+};
 
-export type Session = { role: Role; name: string; email: string };
+const SESSION_KEY = "ontrack_session";
 
-export function getSession(): Session | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
-  } catch { return null; }
+export function setSession(session: Session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
-export function setSession(s: Session) {
-  window.localStorage.setItem(KEY, JSON.stringify(s));
+export function getSession(): Session | null {
+  const raw = localStorage.getItem(SESSION_KEY);
+
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as Session;
+  } catch {
+    return null;
+  }
 }
 
 export function clearSession() {
-  window.localStorage.removeItem(KEY);
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("userName");
 }
