@@ -96,6 +96,68 @@ exports.getProgress = async (req, res) => {
   }
 };
 
+exports.submitCourseByCourseId = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { answers = [] } = req.body;
+    const userId = req.user?.id;
+
+    const Course = require("./course.model");
+    const course = await Course.findOne({ courseId }).lean();
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    // Convert answers array to map for quick lookup
+    const answerMap = {};
+    for (const a of answers) {
+      answerMap[a.questionId] = a.answer;
+    }
+
+    let autoPoints = 0;
+    let totalPoints = 0;
+    let pendingDescriptive = false;
+
+    for (const q of course.questions || []) {
+      totalPoints += Number(q.points) || 1;
+      if (q.type === "DESCRIPTIVE") {
+        pendingDescriptive = true;
+      } else {
+        const given = answerMap[q.questionId];
+        if (given !== undefined && String(given) === String(q.correctAnswer)) {
+          autoPoints += Number(q.points) || 1;
+        }
+      }
+    }
+
+    const passingScore = course.passingScore || Math.ceil(totalPoints * 0.7);
+    const passed = autoPoints >= passingScore;
+
+    // Persist progress
+    if (userId) {
+      await CourseProgress.findOneAndUpdate(
+        { userId, courseId },
+        {
+          $set: {
+            answers: answerMap,
+            submitted: true,
+            autoPoints,
+            totalPoints,
+            passed,
+            pendingDescriptive,
+          },
+          $inc: { attempts: 1 },
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.status(201).json({ success: true, autoPoints, totalPoints, passed, pendingDescriptive });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || "Failed to submit course" });
+  }
+};
+
 exports.reviewDescriptiveAnswers = async (req, res) => {
   try {
     const attempt = await courseService.reviewDescriptiveAnswers({

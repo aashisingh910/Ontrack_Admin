@@ -88,10 +88,14 @@ exports.createStaff = async (payload) => {
   return staff.toObject();
 };
 
-exports.getStaff = async (filters = {}) => {
+exports.getStaff = async (filters = {}, user = null) => {
   const query = { status: "ACTIVE" };
 
-  if (filters.storeCode) query.storeCode = String(filters.storeCode);
+  if (user?.role === "MANAGER") {
+    query.storeCode = user.storeCode;
+  } else if (filters.storeCode) {
+    query.storeCode = String(filters.storeCode);
+  }
   if (filters.department) query.department = new RegExp(filters.department, "i");
   if (filters.city) query.city = new RegExp(filters.city, "i");
   if (filters.region) query.region = new RegExp(filters.region, "i");

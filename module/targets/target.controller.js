@@ -19,7 +19,7 @@ exports.createMonthlyTarget = async (req, res) => {
 
 exports.getMonthlyTargets = async (req, res) => {
   try {
-    const targets = await targetService.getMonthlyTargets(req.query);
+    const targets = await targetService.getMonthlyTargets(req.query, req.user);
 
     res.status(200).json({
       success: true,
@@ -36,7 +36,7 @@ exports.getMonthlyTargets = async (req, res) => {
 
 exports.getDailyTargets = async (req, res) => {
   try {
-    const targets = await targetService.getDailyTargets(req.query);
+    const targets = await targetService.getDailyTargets(req.query, req.user);
 
     res.status(200).json({
       success: true,
@@ -113,6 +113,24 @@ exports.updateDailyActualSales = async (req, res) => {
       success: false,
       message: error.message || "Failed to update daily sales",
     });
+  }
+};
+
+exports.updateMonthlyTarget = async (req, res) => {
+  try {
+    const target = await targetService.updateMonthlyTarget(req.params.targetId, req.body);
+    res.status(200).json({ success: true, message: "Monthly target updated", data: target });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || "Failed to update monthly target" });
+  }
+};
+
+exports.updateDailyTarget = async (req, res) => {
+  try {
+    const target = await targetService.updateDailyTarget(req.params.dailyTargetId, req.body);
+    res.status(200).json({ success: true, message: "Daily target updated", data: target });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || "Failed to update daily target" });
   }
 };
 

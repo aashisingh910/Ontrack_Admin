@@ -32,6 +32,7 @@ router.post("/extract-pdf", upload.single("pdf"), async (req, res) => {
 router.get("/", courseController.getAllCourses);
 router.post("/", courseController.createCourse);
 router.post("/:courseId/questions", auth, courseController.addQuestionToCourse);
+router.post("/:courseId/submit", auth, courseController.submitCourseByCourseId);
 router.get("/:courseId/progress", auth, courseController.getProgress);
 router.get("/:courseId", auth, courseController.getCourse);
 

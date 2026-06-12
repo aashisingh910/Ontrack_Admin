@@ -275,11 +275,16 @@ const createMonthlyTarget = async (payload) => {
   };
 };
 
-const getMonthlyTargets = async (filters = {}) => {
+const getMonthlyTargets = async (filters = {}, user = null) => {
   const query = {};
 
+  if (user?.role === "MANAGER") {
+    query.storeCode = user.storeCode;
+  } else if (filters.storeCode) {
+    query.storeCode = String(filters.storeCode);
+  }
+
   if (filters.targetMonth) query.targetMonth = filters.targetMonth;
-  if (filters.storeCode) query.storeCode = filters.storeCode;
   if (filters.region) query.region = new RegExp(filters.region, "i");
   if (filters.status) query.status = filters.status;
 
@@ -288,11 +293,16 @@ const getMonthlyTargets = async (filters = {}) => {
     .lean();
 };
 
-const getDailyTargets = async (filters = {}) => {
+const getDailyTargets = async (filters = {}, user = null) => {
   const query = {};
 
+  if (user?.role === "MANAGER") {
+    query.storeCode = user.storeCode;
+  } else if (filters.storeCode) {
+    query.storeCode = String(filters.storeCode);
+  }
+
   if (filters.targetMonth) query.targetMonth = filters.targetMonth;
-  if (filters.storeCode) query.storeCode = filters.storeCode;
   if (filters.status) query.status = filters.status;
 
   if (filters.date) {
@@ -480,6 +490,43 @@ const predictNextMonthTarget = async ({ storeCode, nextMonth, growthPercent = 10
   };
 };
 
+const updateMonthlyTarget = async (targetId, { assignedMonthlyTarget, remarks }) => {
+  const target = await StoreMonthlyTarget.findById(targetId);
+  if (!target) {
+    const err = new Error("Monthly target not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  if (assignedMonthlyTarget !== undefined) {
+    target.adminAssignment.assignedMonthlyTarget = Number(assignedMonthlyTarget);
+    if (remarks) target.adminAssignment.remarks = remarks;
+    const actual = target.progress?.actualSales ?? 0;
+    const assigned = Number(assignedMonthlyTarget) || 0;
+    target.progress.achievementPercent = assigned > 0 ? Math.round((actual / assigned) * 100) : 0;
+    target.progress.remainingTarget = Math.max(0, assigned - actual);
+  }
+  await target.save();
+  return target;
+};
+
+const updateDailyTarget = async (dailyTargetId, { assignedDailyTarget }) => {
+  const target = await StoreDailyTarget.findById(dailyTargetId);
+  if (!target) {
+    const err = new Error("Daily target not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  if (assignedDailyTarget !== undefined) {
+    target.assignedDailyTarget = Number(assignedDailyTarget);
+    const actual = target.progress?.actualSales ?? 0;
+    const assigned = Number(assignedDailyTarget) || 0;
+    target.progress.achievementPercent = assigned > 0 ? Math.round((actual / assigned) * 100) : 0;
+    target.progress.remainingTarget = Math.max(0, assigned - actual);
+  }
+  await target.save();
+  return target;
+};
+
 module.exports = {
   createMonthlyTarget,
   buildDailyTargetsFromMonthly,
@@ -490,4 +537,6 @@ module.exports = {
   updateDailyActualSales,
   recalculateMonthlyProgress,
   predictNextMonthTarget,
+  updateMonthlyTarget,
+  updateDailyTarget,
 };

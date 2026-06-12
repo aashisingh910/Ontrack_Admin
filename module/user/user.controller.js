@@ -48,7 +48,7 @@ exports.createStaff = async (req, res) => {
 exports.getStaff = async (req, res) => {
   const { storeCode, department, city, region, weeklyOff, managerId, search } = req.query;
   const filters = { storeCode, department, city, region, weeklyOff, managerId, search };
-  const staff = await userService.getStaff(filters);
+  const staff = await userService.getStaff(filters, req.user);
   res.status(200).json({ success: true, count: staff.length, data: staff });
 };
 

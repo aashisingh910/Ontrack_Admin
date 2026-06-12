@@ -15,7 +15,7 @@ router.get("/managers", auth, userController.getManagers);
 
 // Staff routes (must be before /:id)
 router.post("/staff", userController.createStaff);
-router.get("/staff", userController.getStaff);
+router.get("/staff", auth, userController.getStaff);
 router.get("/staff/weekly-off/list", auth, userController.getStaffWeeklyOff);
 router.get("/staff/store/:storeCode", userController.getStaffByStore);
 router.get("/staff/employee/:employeeCode", userController.getStaffByEmployeeCode);

@@ -7,9 +7,9 @@ const auth = require("../../middleware/auth");
 // Admin assign monthly target and auto-create daily targets
 router.post("/monthly", targetController.createMonthlyTarget);
 
-// List targets
-router.get("/monthly", targetController.getMonthlyTargets);
-router.get("/daily", targetController.getDailyTargets);
+// List targets — manager-scoped via req.user.storeCode in service
+router.get("/monthly", auth, targetController.getMonthlyTargets);
+router.get("/daily", auth, targetController.getDailyTargets);
 
 // Get target by store
 router.get(
@@ -23,6 +23,10 @@ router.get(
   auth,
   targetController.getDailyTargetByStoreDate
 );
+
+// Update assigned targets (used by admin UI)
+router.put("/monthly/:targetId", auth, targetController.updateMonthlyTarget);
+router.put("/daily/:dailyTargetId", auth, targetController.updateDailyTarget);
 
 // Update daily actual sales and auto-update monthly progress
 router.patch(
